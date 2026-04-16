@@ -153,3 +153,6 @@ npm run build
 ```
 
 Output goes to `dist/`. Deploy to Firebase Hosting, Vercel, or Netlify.
+
+
+<!-- Deployment Trigger: 04/16/2026 16:54:42 -->
