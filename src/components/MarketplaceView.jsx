@@ -30,7 +30,7 @@ export default function MarketplaceView({ marketplaceAuctions }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
                 <div>
                    <h3 className="text-label" style={{ color: "var(--primary)", marginBottom: 12 }}>Trending</h3>
-                   <h2 style={{ fontFamily: "var(--font-display)", fontSize: 32, margin: 0, fontWeight: 400 }}>Most Anticipated Auctions</h2>
+                   <h2 className="marketplace-section-title">Most Anticipated Auctions</h2>
                 </div>
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", letterSpacing: 1 }}>RANKED BY BIDDER INTEREST</span>
             </div>
@@ -45,7 +45,7 @@ export default function MarketplaceView({ marketplaceAuctions }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32 }}>
           <div>
             <h3 className="text-label" style={{ color: "var(--primary)", marginBottom: 12 }}>Inventory</h3>
-            <h2 style={{ fontFamily: "var(--font-display)", fontSize: 32, margin: 0, fontWeight: 400 }}>
+            <h2 className="marketplace-section-title">
               {searchQuery ? `Search Results for "${searchQuery}"` : "Global Marketplace"}
             </h2>
           </div>

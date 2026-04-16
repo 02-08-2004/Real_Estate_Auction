@@ -57,7 +57,7 @@ export default function DashboardSummary({ userData, stats, activeBiddedProperti
       </div>
 
       {/* Stats Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
+      <div className="stats-grid-dashboard">
         <StatCard label="Active Bids" value={activeBidsCount} icon="🏦" color="var(--primary)" accent="rgba(210,31,60,0.6)" />
         <StatCard label="Won Auctions" value={wonCount} icon="🏆" color="#4ade80" accent="rgba(74,222,128,0.4)" />
         <StatCard label="Saved Items" value={savedCount} icon="❤️" color="#fb7185" accent="rgba(251,113,133,0.4)" />

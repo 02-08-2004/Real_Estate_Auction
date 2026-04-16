@@ -181,6 +181,21 @@
 @media (max-width: 1024px) {
   .bottom-nav { display: flex; }
   .main-content { padding-bottom: 90px !important; }
+  .app-sidebar {
+    position: fixed;
+    left: -300px;
+    top: 72px;
+    bottom: 0;
+    width: 280px;
+    padding: 24px 20px;
+    transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    background: rgba(10, 10, 10, 0.95);
+    z-index: 1000;
+  }
+  .app-sidebar.open {
+    left: 0;
+    box-shadow: 20px 0 60px rgba(0,0,0,0.8);
+  }
 }
 
 .bottom-nav-item {
@@ -218,19 +233,15 @@
 .status-chip.sold { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
 /* Marketplace Hero */
-.marketplace-hero {
-  position: relative;
-  min-height: 480px;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  margin-top: 1rem;
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 80px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+}
+
+@media (max-width: 768px) {
+  .marketplace-hero {
+    min-height: 280px !important;
+    padding: 32px 20px !important;
+    border-radius: 20px !important;
+  }
 }
 
 .marketplace-hero-overlay {
@@ -260,6 +271,17 @@
   max-width: 600px;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 768px) {
+  .filter-bar {
+    flex-direction: column;
+    border-radius: 24px;
+    padding: 16px;
+    gap: 12px;
+  }
+  .filter-col::after { display: none; }
+  .filter-btn { width: 100%; }
 }
 
 .filter-bar:focus-within {
@@ -1345,4 +1367,82 @@ body {
 
 .fade-in {
   animation: fadeIn 0.25s ease;
+}
+
+/* --- Responsive Helpers --- */
+.auction-hero-title {
+  font-family: var(--font-display);
+  font-size: 42px;
+  margin: 0;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.7);
+}
+
+.auction-main-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px 80px;
+}
+
+.auction-bid-panel {
+  padding-top: 36px;
+}
+
+@media (max-width: 1024px) {
+  .auction-hero-title {
+    font-size: 28px;
+  }
+  .auction-main-layout {
+    grid-template-columns: 1fr;
+    padding: 0 20px 80px;
+  }
+  .auction-bid-panel {
+    padding-top: 20px;
+  }
+  .auction-main-layout > div:first-child {
+    padding-right: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+  .buyer-dashboard-grid {
+    padding: 1rem;
+  }
+}
+
+.stats-grid-dashboard {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.marketplace-section-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  margin: 0;
+  font-weight: 400;
+}
+
+@media (max-width: 1024px) {
+  .stats-grid-dashboard {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .marketplace-section-title {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-grid-dashboard {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }

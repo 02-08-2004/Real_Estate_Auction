@@ -182,13 +182,13 @@ export default function AuctionView() {
               <span style={{ background: "rgba(255,255,255,0.15)", color: "#fff", fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 6, letterSpacing: 1.5, textTransform: "uppercase" }}>Ended</span>}
             {timeLeft && <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>{timeLeft}</span>}
           </div>
-          <h1 style={{ fontFamily: "var(--font-display)", fontSize: 42, margin: 0, fontWeight: 600, color: "#fff", textShadow: "0 2px 16px rgba(0,0,0,0.7)" }}>{property.title}</h1>
+          <h1 className="auction-hero-title">{property.title}</h1>
           <div style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", marginTop: 8 }}>📍 {property.location}</div>
         </div>
       </div>
 
       {/* ── MAIN LAYOUT ─────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 0, maxWidth: 1200, margin: "0 auto", padding: "0 32px 80px" }}>
+      <div className="auction-main-layout">
 
         {/* LEFT: Tabs + Content */}
         <div style={{ paddingRight: 40 }}>
@@ -330,7 +330,7 @@ export default function AuctionView() {
         </div>
 
         {/* RIGHT: Bid Panel ────────────────────────────────── */}
-        <div style={{ paddingTop: 36 }}>
+        <div className="auction-bid-panel">
           <div style={{ position: "sticky", top: 24, display: "flex", flexDirection: "column", gap: 16 }}>
 
             {/* Current Bid Card */}
