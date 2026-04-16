@@ -1,0 +1,13 @@
+rules_version = '2';
+
+// NOTE: These are FIREBASE STORAGE rules (for images & PDFs).
+// They belong in the Storage > Rules tab in Firebase, NOT in the Firestore tab.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      // Allows anyone to view and upload images/documents during development
+      allow read, write: if true;
+    }
+  }
+}
