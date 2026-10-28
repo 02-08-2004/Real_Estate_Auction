@@ -207,11 +207,6 @@ export default function AdminDashboard() {
            </h1>
            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>System Control & Oversight</p>
         </div>
-        {(currentTab === "active" || currentTab === "pending") && (
-          <button className="btn-primary" style={{ width: "auto", padding: "12px 24px" }} onClick={() => setShowModal(true)}>
-            + NEW PROPERTY
-          </button>
-        )}
       </div>
 
       {renderContent()}

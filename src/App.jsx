@@ -36,6 +36,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/__/auth/action" element={<ForgotPassword />} />
 
           {/* Protected Main App Layout (User & Admin shared structure) */}
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>

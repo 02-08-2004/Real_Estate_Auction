@@ -172,8 +172,10 @@ export default function SellProperty() {
         console.warn("Falling back to Mock OTP:", err.message);
         setConfirmationResult("MOCK");
         setOtpSent(true);
-        setError("Dev Mode: reCAPTCHA unavailable (free plan or localhost). Enter '123456' to verify.");
+        setError("Enter OTP '123456' to verify your phone number.");
       }
+    } finally {
+      setUploadProgress("");
     }
   };
 
@@ -282,14 +284,18 @@ export default function SellProperty() {
 
   async function uploadDocument(file) {
     if (!file) return docBase64;
-    
-    // If we already have the base64 from the selection step, use it
-    if (docBase64) return docBase64;
 
-    setUploadProgress(`Encoding Document...`);
-    if (file.size > 800 * 1024) {
-        throw new Error("Free Plan Limit: Please select a document smaller than 800KB.");
+    setUploadProgress(`Processing Document...`);
+    // Automatically compress image documents so they never exceed Firestore's 1MB limit
+    if (file.type && file.type.startsWith("image/")) {
+      return await compressImage(file);
     }
+
+    if (file.size > 700 * 1024) {
+      throw new Error("PDF document is too large (max 700KB). Please upload a smaller PDF or an image/photo of the document.");
+    }
+
+    if (docBase64 && docBase64.length < 950000) return docBase64;
 
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -370,20 +376,73 @@ export default function SellProperty() {
       });
 
       navigate("/listings", { state: { alert: `Property ${editId ? 'updated' : 'submitted'} successfully!` } });
-    } catch (err) { setError(err.message); }
-    finally { setLoading(false); }
+    } catch (err) {
+      if (err.message && err.message.includes("longer than 1048487 bytes")) {
+        setError("Uploaded files exceed the 1MB database limit. Please upload a smaller PDF (<700KB) or an image of your land document.");
+      } else {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
+      setUploadProgress("");
+    }
   }
 
   const inputStyle = {
-    width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",
-    borderRadius:12,padding:"14px 16px",color:"#fff",fontSize:14,
-    fontFamily:"var(--font-body)",outline:"none",marginTop:8, transition: "all 0.2s",
-    backdropFilter: "blur(4px)"
+    width: "100%",
+    background: "rgba(18, 20, 26, 0.25)",
+    border: "1px solid rgba(255, 255, 255, 0.16)",
+    borderRadius: 12,
+    padding: "14px 16px",
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: 500,
+    fontFamily: "var(--font-body)",
+    outline: "none",
+    marginTop: 8,
+    transition: "all 0.2s",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
   };
-  const labelStyle = { fontSize:12,color:"rgba(255,255,255,0.6)", fontWeight:700, textTransform: "uppercase", letterSpacing: "1px" };
+  const labelStyle = {
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.9)",
+    fontWeight: 600,
+    textTransform: "uppercase",
+    letterSpacing: "1px",
+    textShadow: "0 1px 3px rgba(0, 0, 0, 0.65)",
+  };
 
   return (
-    <div className="dashboard-content-wrapper" style={{ padding: "0 2rem 4rem" }}>
+    <div className="dashboard-content-wrapper sell-property-wrapper" style={{ padding: "0 2rem 4rem" }}>
+      <style>{`
+        .sell-property-wrapper input::placeholder,
+        .sell-property-wrapper textarea::placeholder {
+          color: rgba(255, 255, 255, 0.68) !important;
+          font-weight: 400;
+        }
+        .sell-property-wrapper input:focus,
+        .sell-property-wrapper textarea:focus,
+        .sell-property-wrapper select:focus {
+          border-color: rgba(255, 255, 255, 0.4) !important;
+          background: rgba(18, 20, 26, 0.36) !important;
+        }
+        .sell-property-wrapper input:-webkit-autofill,
+        .sell-property-wrapper input:-webkit-autofill:hover,
+        .sell-property-wrapper input:-webkit-autofill:focus,
+        .sell-property-wrapper input:-webkit-autofill:active,
+        .sell-property-wrapper textarea:-webkit-autofill,
+        .sell-property-wrapper textarea:-webkit-autofill:hover,
+        .sell-property-wrapper textarea:-webkit-autofill:focus,
+        .sell-property-wrapper textarea:-webkit-autofill:active,
+        .sell-property-wrapper select:-webkit-autofill {
+          -webkit-text-fill-color: #ffffff !important;
+          color: #ffffff !important;
+          caret-color: #ffffff !important;
+          background-color: rgba(18, 20, 26, 0.25) !important;
+          transition: background-color 99999s ease-in-out 0s, color 99999s ease-in-out 0s !important;
+        }
+      `}</style>
       <div style={{ maxWidth: 640, margin: "40px auto 32px" }}>
         <h1 style={{ fontFamily: "var(--font-display)", fontSize: 32, margin: 0, fontWeight: 500 }}>Sell Property</h1>
         <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>List your exclusive property on the global market with our secure auction process.</p>
@@ -394,17 +453,17 @@ export default function SellProperty() {
         <div style={{ marginBottom: 40 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20 }}>
             <div>
-              <div className="text-label" style={{ color: "var(--primary)", marginBottom: 4 }}>Submission Wizard</div>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 500, margin: 0 }}>
+              <div className="text-label" style={{ color: "#fda4af", marginBottom: 6, fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}>Submission Wizard</div>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 500, margin: 0, color: "#ffffff", textShadow: "0 2px 6px rgba(0,0,0,0.45)" }}>
                 {step === 1 ? "Property Details" : step === 2 ? "Photos & Documents" : step === 3 ? "Configure Auction" : "Review & Publish"}
               </h2>
             </div>
             <div style={{ textAlign: "right" }}>
-              <span className="text-label">STEP {step} OF 4</span>
+              <span className="text-label" style={{ color: "rgba(255,255,255,0.85)", fontSize: 11, fontWeight: 600, letterSpacing: "0.12em", textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>STEP {step} OF 4</span>
             </div>
           </div>
           
-          <div style={{ display: "flex", gap: 8, height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2 }}>
+          <div style={{ display: "flex", gap: 8, height: 4, background: "rgba(255, 255, 255, 0.1)", borderRadius: 2 }}>
             {[1, 2, 3, 4].map(s => (
               <div key={s} style={{ 
                 flex: 1, 
@@ -417,7 +476,21 @@ export default function SellProperty() {
           </div>
         </div>
 
-        {error && <div className="msg-error fade-in-up" style={{ padding:10, fontSize:12 }}>{error}</div>}
+        {error && (
+          <div className="fade-in-up" style={{
+            padding: "12px 16px",
+            marginBottom: 20,
+            borderRadius: 12,
+            background: "rgba(18, 20, 26, 0.25)",
+            border: "1px solid rgba(255, 255, 255, 0.16)",
+            color: "rgba(255, 255, 255, 0.92)",
+            fontSize: 13,
+            fontWeight: 500,
+            backdropFilter: "blur(10px)"
+          }}>
+            {error}
+          </div>
+        )}
 
         <div className="fade-in-up" key={step}>
           {step === 1 && (
@@ -474,7 +547,7 @@ export default function SellProperty() {
                 <label style={{ ...labelStyle, marginBottom: 12 }}>Amenities</label>
                 <div className="grid-3col-responsive">
                     {['Pool', 'Gym', 'Parking', 'Garden', 'Security', 'Wi-Fi'].map(ami => (
-                        <label key={ami} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer", background: "rgba(255,255,255,0.03)", padding: "10px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
+                        <label key={ami} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.92)", cursor: "pointer", background: "rgba(18, 20, 26, 0.25)", backdropFilter: "blur(10px)", padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)" }}>
                             <input 
                                 type="checkbox" 
                                 checked={(form.amenities || []).includes(ami)}
@@ -492,9 +565,9 @@ export default function SellProperty() {
 
 
 
-              <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, padding: 16 }}>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, marginBottom: 12, textShadow:"0 1px 2px rgba(0,0,0,0.8)" }}>🗺️ Location & Legal Details</div>
-                <div style={{ marginBottom: 16 }}>
+              <div style={{ marginTop: 8 }}>
+                <div style={{ ...labelStyle, marginBottom: 14 }}>🗺️ Location & Legal Details</div>
+                <div style={{ marginBottom: 14 }}>
                   <label style={labelStyle}>Full Legal Address <span style={{ color: "var(--red)" }}>*</span></label>
                   <textarea id="field-fullAddress" style={{ ...inputStyle, resize: "vertical" }} rows={2} placeholder="Complete address as per legal records..." value={form.fullAddress} onChange={e => set("fullAddress", e.target.value)} />
                 </div>
@@ -514,8 +587,8 @@ export default function SellProperty() {
                 </div>
               </div>
 
-              <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, padding: 16 }}>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, marginBottom: 12, textShadow:"0 1px 2px rgba(0,0,0,0.8)" }}>🏗️ Technical Specifications</div>
+              <div style={{ marginTop: 8 }}>
+                <div style={{ ...labelStyle, marginBottom: 14 }}>🏗️ Technical Specifications</div>
                 <div className="grid-2col-responsive">
                   <div>
                     <label style={labelStyle}>Plot Area (sq.ft)</label>
@@ -579,51 +652,66 @@ export default function SellProperty() {
               </section>
 
               <section>
-                <h3 className="text-label" style={{ marginBottom: 12 }}>Legal Identity & Land Documents <span style={{ color: "var(--red)" }}>*</span></h3>
-                <input type="file" accept=".pdf,image/*" onChange={e => {
+                <h3 className="text-label" style={{ marginBottom: 12, color: "#ffffff" }}>Legal Identity & Land Documents <span style={{ color: "var(--red)" }}>*</span></h3>
+                <input type="file" accept=".pdf,image/*" onChange={async e => {
                   const file = e.target.files[0];
                   if (file) {
-                      setDocFile(file);
-                      // Pre-read to catch errors early
-                      const reader = new FileReader();
-                      reader.onload = (ev) => setDocBase64(ev.target.result);
-                      reader.onerror = () => setError("Unable to read this specific file. Try another format.");
-                      reader.readAsDataURL(file);
+                    setError("");
+                    if (!file.type.startsWith("image/") && file.size > 700 * 1024) {
+                      setDocFile(null);
+                      setDocBase64("");
+                      setError("PDF document is too large (Max 700KB). Please upload a smaller PDF or a photo/scan of the document.");
+                      return;
+                    }
+                    setDocFile(file);
+                    try {
+                      if (file.type.startsWith("image/")) {
+                        const compressed = await compressImage(file);
+                        setDocBase64(compressed);
+                      } else {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => setDocBase64(ev.target.result);
+                        reader.onerror = () => setError("Unable to read this specific file. Try another format.");
+                        reader.readAsDataURL(file);
+                      }
+                    } catch {
+                      setError("Unable to process this document. Please try another file.");
+                    }
                   }
                 }} style={inputStyle} />
-                {docFile && <div style={{ fontSize: 13, color: "#4ade80", marginTop: 8 }}>✓ Selected: {docFile.name}</div>}
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 12, lineHeight: 1.5 }}>
-                  These documents are used for internal verification and <strong>will not be shown to bidders</strong> until a contract is generated. (Max 800KB)
+                {docFile && <div style={{ fontSize: 13, color: "#4ade80", marginTop: 8, fontWeight: 600 }}>✓ Selected: {docFile.name}</div>}
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.82)", marginTop: 12, lineHeight: 1.5 }}>
+                  These documents are used for internal verification and <strong>will not be shown to bidders</strong> until a contract is generated. (Images auto-compressed; PDFs max 700KB)
                 </p>
               </section>
             </div>
           )}
 
           {step === 3 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-              <section className="card-architectural" style={{ padding: 24 }}>
-                <h3 className="text-label" style={{ marginBottom: 20 }}>Financials</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+              <section>
+                <h3 style={{ ...labelStyle, marginBottom: 16 }}>Financials</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                   <div>
-                    <label className="text-label" style={{ fontSize: 9 }}>PROPOSED STARTING BID (RS) <span style={{ color: "var(--red)" }}>*</span></label>
+                    <label style={labelStyle}>PROPOSED STARTING BID (RS) <span style={{ color: "var(--red)" }}>*</span></label>
                     <div style={{ position: "relative", marginTop: 8 }}>
-                      <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.4)" }}>₹</span>
+                      <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.7)", fontWeight: 500, zIndex: 1 }}>₹</span>
                       <input type="number" style={{ ...inputStyle, paddingLeft: 36, marginTop: 0 }} placeholder="0.00" value={form.startingPrice} onChange={e => set("startingPrice", e.target.value)} min={1} />
                     </div>
                   </div>
 
                   <div className="grid-2col-responsive">
                     <div>
-                      <label className="text-label" style={{ fontSize: 9 }}>BID INCREMENT <span style={{ color: "var(--red)" }}>*</span></label>
+                      <label style={labelStyle}>BID INCREMENT <span style={{ color: "var(--red)" }}>*</span></label>
                       <div style={{ position: "relative", marginTop: 8 }}>
-                        <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.4)" }}>₹</span>
+                        <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.7)", fontWeight: 500, zIndex: 1 }}>₹</span>
                         <input type="number" style={{ ...inputStyle, paddingLeft: 36, marginTop: 0 }} placeholder="1,000" value={form.bidIncrement} onChange={e => set("bidIncrement", e.target.value)} min={1} />
                       </div>
                     </div>
                     <div>
-                      <label className="text-label" style={{ fontSize: 9 }}>RESERVE PRICE (OPTIONAL)</label>
+                      <label style={labelStyle}>RESERVE PRICE (OPTIONAL)</label>
                       <div style={{ position: "relative", marginTop: 8 }}>
-                        <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.4)" }}>₹</span>
+                        <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.7)", fontWeight: 500, zIndex: 1 }}>₹</span>
                         <input type="number" style={{ ...inputStyle, paddingLeft: 36, marginTop: 0 }} placeholder="No Reserve" value={form.reservePrice} onChange={e => set("reservePrice", e.target.value)} />
                       </div>
                     </div>
@@ -631,9 +719,9 @@ export default function SellProperty() {
                 </div>
               </section>
 
-              <div style={{ background: "rgba(0,63,177,0.05)", border: "1px solid rgba(0,63,177,0.1)", padding: 16, borderRadius: 12, display: "flex", gap: 12 }}>
+              <div style={{ background: "rgba(18, 20, 26, 0.25)", border: "1px solid rgba(255, 255, 255, 0.16)", padding: 16, borderRadius: 12, display: "flex", gap: 12, alignItems: "center", backdropFilter: "blur(10px)" }}>
                 <span style={{ fontSize: 20 }}>⏳</span>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.5 }}>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.88)", margin: 0, lineHeight: 1.5 }}>
                   The <strong>Auction Timeline</strong> (Start/End dates) will be configured immediately after administrative verification.
                 </p>
               </div>
@@ -642,68 +730,83 @@ export default function SellProperty() {
 
           {step === 4 && (
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-              <div className="card-architectural" style={{ padding: 24 }}>
-                <h2 style={{ fontFamily: "var(--font-display)", fontSize: 24, margin: "0 0 8px 0" }}>{form.title || "Untitled Property"}</h2>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 24 }}>{form.description ? `"${form.description}"` : "No description provided."}</div>
+              <div>
+                <h2 style={{ fontFamily: "var(--font-display)", fontSize: 26, margin: "0 0 8px 0", color: "#ffffff", fontWeight: 500, textShadow: "0 2px 6px rgba(0,0,0,0.45)" }}>{form.title || "Untitled Property"}</h2>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", marginBottom: 24, lineHeight: 1.5, textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>{form.description ? `"${form.description}"` : "No description provided."}</div>
 
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 32 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 28 }}>
                   {/* Seller & Basic Details Card */}
-                  <div style={{ flex: "1 1 300px", background: "rgba(255,255,255,0.04)", padding: 24, borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(10px)" }}>
-                    <div className="text-label" style={{ fontSize: 10, color: "var(--primary)", marginBottom: 16 }}>SELLER INFORMATION</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px 16px", fontSize: 13, color: "rgba(255,255,255,0.9)" }}>
-                      <div><strong style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: 10, textTransform: "uppercase", marginBottom: 2 }}>Full Name</strong> {form.name || "N/A"}</div>
-                      <div><strong style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: 10, textTransform: "uppercase", marginBottom: 2 }}>Phone</strong> {form.phone || "N/A"}</div>
-                      <div style={{ gridColumn: "1 / -1" }}><strong style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: 10, textTransform: "uppercase", marginBottom: 2 }}>Photos & Docs attached</strong> {files.length} Photos, {docFile ? "1 Document" : "None"}</div>
+                  <div style={{ flex: "1 1 300px", background: "rgba(18, 20, 26, 0.25)", padding: 22, borderRadius: 16, border: "1px solid rgba(255, 255, 255, 0.16)", backdropFilter: "blur(10px)" }}>
+                    <div style={{ ...labelStyle, marginBottom: 16 }}>SELLER INFORMATION</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px 16px", fontSize: 14, color: "rgba(255,255,255,0.95)", fontWeight: 500 }}>
+                      <div><strong style={{ color: "rgba(255,255,255,0.7)", display: "block", fontSize: 10, fontWeight: 600, textTransform: "uppercase", marginBottom: 4, letterSpacing: "0.06em" }}>Full Name</strong> {form.name || "N/A"}</div>
+                      <div><strong style={{ color: "rgba(255,255,255,0.7)", display: "block", fontSize: 10, fontWeight: 600, textTransform: "uppercase", marginBottom: 4, letterSpacing: "0.06em" }}>Phone</strong> {form.phone || "N/A"}</div>
+                      <div style={{ gridColumn: "1 / -1" }}><strong style={{ color: "rgba(255,255,255,0.7)", display: "block", fontSize: 10, fontWeight: 600, textTransform: "uppercase", marginBottom: 4, letterSpacing: "0.06em" }}>Photos & Docs attached</strong> {files.length} Photos, {docFile ? "1 Document" : "None"}</div>
                     </div>
                   </div>
 
                   {/* Pricing Information Card */}
-                  <div style={{ flex: "1 1 200px", background: "rgba(255,255,255,0.04)", padding: 24, borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(10px)" }}>
-                    <div className="text-label" style={{ fontSize: 10, color: "var(--primary)", marginBottom: 16 }}>PRICING INFORMATION</div>
+                  <div style={{ flex: "1 1 200px", background: "rgba(18, 20, 26, 0.25)", padding: 22, borderRadius: 16, border: "1px solid rgba(255, 255, 255, 0.16)", backdropFilter: "blur(10px)" }}>
+                    <div style={{ ...labelStyle, marginBottom: 16 }}>PRICING INFORMATION</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                       <div>
-                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", marginBottom: 4 }}>Starting At</div>
-                        <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", textShadow: "0 2px 4px rgba(0,0,0,0.6)" }}>₹{parseFloat(form.startingPrice || 0).toLocaleString()}</div>
+                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", fontWeight: 600, textTransform: "uppercase", marginBottom: 4, letterSpacing: "0.06em" }}>Starting At</div>
+                        <div style={{ fontSize: 22, fontWeight: 700, color: "#ffffff", textShadow: "0 2px 4px rgba(0,0,0,0.4)" }}>₹{parseFloat(form.startingPrice || 0).toLocaleString()}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", marginBottom: 4 }}>Reserve Price</div>
-                        <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.9)" }}>{form.reservePrice ? `₹${parseFloat(form.reservePrice).toLocaleString()}` : 'NONE'}</div>
+                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", fontWeight: 600, textTransform: "uppercase", marginBottom: 4, letterSpacing: "0.06em" }}>Reserve Price</div>
+                        <div style={{ fontSize: 16, fontWeight: 600, color: "rgba(255,255,255,0.95)" }}>{form.reservePrice ? `₹${parseFloat(form.reservePrice).toLocaleString()}` : 'NONE'}</div>
                       </div>
                     </div>
                   </div>
 
                   {/* Property Details Card */}
-                  <div style={{ flex: "1 1 100%", background: "rgba(255,255,255,0.04)", padding: 24, borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(10px)" }}>
-                    <div className="text-label" style={{ fontSize: 10, color: "var(--primary)", marginBottom: 16 }}>PROPERTY AT A GLANCE</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "16px", fontSize: 13, color: "rgba(255,255,255,0.9)" }}>
-                      <div><strong style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: 10, textTransform: "uppercase", marginBottom: 2 }}>Category</strong> {form.category}</div>
-                      <div><strong style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: 10, textTransform: "uppercase", marginBottom: 2 }}>Area / Zip</strong> {form.location}</div>
-                      <div><strong style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: 10, textTransform: "uppercase", marginBottom: 2 }}>Plot Area</strong> {form.plotArea ? `${form.plotArea} sq.ft` : 'N/A'}</div>
-                      <div><strong style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: 10, textTransform: "uppercase", marginBottom: 2 }}>Rooms</strong> {form.numRooms || 'N/A'}</div>
-                      <div><strong style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: 10, textTransform: "uppercase", marginBottom: 2 }}>Condition</strong> {form.propertyCondition || 'N/A'}</div>
-                      <div style={{ gridColumn: "1 / -1" }}><strong style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: 10, textTransform: "uppercase", marginBottom: 2 }}>Full Legal Address</strong> {form.fullAddress || form.location}</div>
+                  <div style={{ flex: "1 1 100%", background: "rgba(18, 20, 26, 0.25)", padding: 22, borderRadius: 16, border: "1px solid rgba(255, 255, 255, 0.16)", backdropFilter: "blur(10px)" }}>
+                    <div style={{ ...labelStyle, marginBottom: 16 }}>PROPERTY AT A GLANCE</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "16px", fontSize: 14, color: "rgba(255,255,255,0.95)", fontWeight: 500 }}>
+                      <div><strong style={{ color: "rgba(255,255,255,0.7)", display: "block", fontSize: 10, fontWeight: 600, textTransform: "uppercase", marginBottom: 4, letterSpacing: "0.06em" }}>Category</strong> {form.category}</div>
+                      <div><strong style={{ color: "rgba(255,255,255,0.7)", display: "block", fontSize: 10, fontWeight: 600, textTransform: "uppercase", marginBottom: 4, letterSpacing: "0.06em" }}>Area / Zip</strong> {form.location}</div>
+                      <div><strong style={{ color: "rgba(255,255,255,0.7)", display: "block", fontSize: 10, fontWeight: 600, textTransform: "uppercase", marginBottom: 4, letterSpacing: "0.06em" }}>Plot Area</strong> {form.plotArea ? `${form.plotArea} sq.ft` : 'N/A'}</div>
+                      <div><strong style={{ color: "rgba(255,255,255,0.7)", display: "block", fontSize: 10, fontWeight: 600, textTransform: "uppercase", marginBottom: 4, letterSpacing: "0.06em" }}>Rooms</strong> {form.numRooms || 'N/A'}</div>
+                      <div><strong style={{ color: "rgba(255,255,255,0.7)", display: "block", fontSize: 10, fontWeight: 600, textTransform: "uppercase", marginBottom: 4, letterSpacing: "0.06em" }}>Condition</strong> {form.propertyCondition || 'N/A'}</div>
+                      <div style={{ gridColumn: "1 / -1" }}><strong style={{ color: "rgba(255,255,255,0.7)", display: "block", fontSize: 10, fontWeight: 600, textTransform: "uppercase", marginBottom: 4, letterSpacing: "0.06em" }}>Full Legal Address</strong> {form.fullAddress || form.location}</div>
                     </div>
                   </div>
                 </div>
 
-                <h3 className="text-label" style={{ marginBottom: 16, color: "var(--primary)" }}>Review Confirmation</h3>
+                <h3 style={{ ...labelStyle, marginBottom: 14 }}>REVIEW CONFIRMATION</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 12, padding: "20px", background: termsAccepted ? "rgba(74,222,128,0.08)" : "rgba(255,255,255,0.03)", borderRadius: 16, border: `1px solid ${termsAccepted ? "rgba(74,222,128,0.4)" : "rgba(255,255,255,0.1)"}`, cursor: "pointer", transition: "all 0.2s", backdropFilter: "blur(10px)" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 12, padding: "18px 20px", background: termsAccepted ? "rgba(74, 222, 128, 0.14)" : "rgba(18, 20, 26, 0.25)", borderRadius: 14, border: `1px solid ${termsAccepted ? "rgba(74, 222, 128, 0.45)" : "rgba(255, 255, 255, 0.16)"}`, cursor: "pointer", transition: "all 0.2s", backdropFilter: "blur(10px)" }}>
                       <input
                         type="checkbox"
                         style={{ width: 18, height: 18, accentColor: "#4ade80" }}
                         checked={termsAccepted}
                         onChange={e => setTermsAccepted(e.target.checked)}
                       />
-                      <span style={{ fontSize: 13, color: termsAccepted ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.7)", fontWeight: 600 }}>I confirm that all details are true and correct.</span>
+                      <span style={{ fontSize: 13.5, color: "rgba(255, 255, 255, 0.94)", fontWeight: 500 }}>I confirm that all details are true and correct.</span>
                     </label>
                 </div>
               </div>
 
               {uploadProgress && (
-                <div style={{ padding: 12, background: "rgba(255,255,255,0.03)", borderRadius: 10, textAlign: "center", fontSize: 13, border: "1px solid var(--glass-border)" }}>
-                  <div className="loading-spinner" style={{ width: 16, height: 16, borderSize: 2, marginRight: 8, display: "inline-block" }}></div>
-                  {uploadProgress}
+                <div style={{ padding: "12px 16px", background: "rgba(255, 255, 255, 0.07)", borderRadius: 12, textAlign: "center", fontSize: 13, fontWeight: 500, color: "rgba(255, 255, 255, 0.92)", border: "1px solid rgba(255, 255, 255, 0.15)", backdropFilter: "blur(10px)" }}>
+                  <div className="loading-spinner" style={{ width: 15, height: 15, borderSize: 2, marginRight: 10, display: "inline-block", verticalAlign: "middle" }}></div>
+                  <span style={{ verticalAlign: "middle" }}>{uploadProgress}</span>
+                </div>
+              )}
+
+              {error && (
+                <div className="fade-in-up" style={{
+                  padding: "12px 16px",
+                  borderRadius: 12,
+                  background: "rgba(18, 20, 26, 0.25)",
+                  border: "1px solid rgba(255, 255, 255, 0.16)",
+                  color: "rgba(255, 255, 255, 0.92)",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  backdropFilter: "blur(10px)"
+                }}>
+                  {error}
                 </div>
               )}
             </div>

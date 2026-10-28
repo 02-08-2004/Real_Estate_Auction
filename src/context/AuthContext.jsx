@@ -49,7 +49,10 @@ export function AuthProvider({ children }) {
 
   async function register(name, email, password, role = "user") {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await sendEmailVerification(cred.user);
+    await sendEmailVerification(cred.user, {
+      url: `${window.location.origin}/login`,
+      handleCodeInApp: false,
+    });
     await setDoc(doc(db, "users", cred.user.uid), {
       name,
       email,

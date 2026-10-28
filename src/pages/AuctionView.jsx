@@ -1,11 +1,12 @@
 // src/pages/AuctionView.jsx
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { doc, onSnapshot, runTransaction, serverTimestamp, collection, query, where } from "firebase/firestore";
+import { doc, getDoc, onSnapshot, runTransaction, serverTimestamp, collection, query, where } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "../context/AuthContext";
 import ParticipateAuctionModal from "../components/ParticipateAuctionModal";
 import LoadingIndicator from "../components/LoadingIndicator";
+import { notificationService } from "../services/notificationService";
 
 const TABS = [
   { key: "overview",  label: "Overview" },
@@ -71,6 +72,7 @@ export default function AuctionView() {
   const handleAuctionEnd = async (prop) => {
     if (prop.status !== "live" && prop.status !== "scheduled") return;
     try {
+      let finalizedData = null;
       await runTransaction(db, async (t) => {
         const pDoc = await t.get(doc(db, "properties", prop.id));
         const data = pDoc.data();
@@ -79,10 +81,45 @@ export default function AuctionView() {
           status: data.topBidderId ? "contract_pending" : "ended",
           winnerId: data.topBidderId || null,
           winnerName: data.topBidderName || null,
+          winnerEmail: data.topBidderEmail || null,
           winnerAmount: data.currentBid || null,
           endedAt: serverTimestamp(),
         });
+        finalizedData = { id: prop.id, ...data };
       });
+
+      if (finalizedData) {
+        if (finalizedData.topBidderId) {
+          let winnerEmail = finalizedData.topBidderEmail || allBids[0]?.bidderEmail;
+          if (!winnerEmail) {
+            try {
+              const uSnap = await getDoc(doc(db, "users", finalizedData.topBidderId));
+              if (uSnap.exists()) winnerEmail = uSnap.data().email;
+            } catch (_) {}
+          }
+          await notificationService.notifyAuctionEnd(finalizedData, {
+            bidderId: finalizedData.topBidderId,
+            bidderName: finalizedData.topBidderName || "Winning Bidder",
+            bidderEmail: winnerEmail,
+            amount: finalizedData.currentBid || 0,
+          });
+        } else if (finalizedData.sellerId) {
+          const msg = `The auction for "${finalizedData.title}" has ended with no bids placed.`;
+          await notificationService.sendBell(finalizedData.sellerId, msg, {
+            type: "auction_ended_unsold",
+            propertyId: finalizedData.id,
+          });
+          if (finalizedData.sellerEmail) {
+            await notificationService.sendEmail(
+              finalizedData.sellerEmail,
+              finalizedData.sellerName || "Seller",
+              `Auction Ended: ${finalizedData.title}`,
+              `<p>${msg}</p>`
+            );
+          }
+        }
+      }
+
       if (prop.topBidderId === currentUser?.uid) setShowWinnerPopup(true);
       else if (allBids.some(b => b.bidderId === currentUser?.uid)) setShowLoserPopup(true);
     } catch (e) { console.error(e); }
@@ -131,8 +168,21 @@ export default function AuctionView() {
         const minBid = (pData.currentBid || 0) + minInc;
         if (amount < minBid) throw new Error(`Minimum bid required: ₹${minBid.toLocaleString()}`);
         const bidRef = doc(collection(db, "bids"));
-        tx.set(bidRef, { propertyId: property.id, bidderId: currentUser.uid, bidderName: userData?.name || currentUser.email, amount, createdAt: serverTimestamp() });
-        tx.update(doc(db, "properties", property.id), { currentBid: amount, topBidderId: currentUser.uid, topBidderName: userData?.name || currentUser.email, lastBidAt: serverTimestamp() });
+        tx.set(bidRef, {
+          propertyId: property.id,
+          bidderId: currentUser.uid,
+          bidderName: userData?.name || currentUser.displayName || currentUser.email,
+          bidderEmail: currentUser.email,
+          amount,
+          createdAt: serverTimestamp(),
+        });
+        tx.update(doc(db, "properties", property.id), {
+          currentBid: amount,
+          topBidderId: currentUser.uid,
+          topBidderName: userData?.name || currentUser.displayName || currentUser.email,
+          topBidderEmail: currentUser.email,
+          lastBidAt: serverTimestamp(),
+        });
       });
       setSuccess("✓ You are the leading bidder!");
       setBidAmount("");

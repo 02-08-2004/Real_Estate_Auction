@@ -194,7 +194,34 @@ export default function AuctionAgreement() {
     };
 
     if (loading) return <div style={{ color: "#fff", padding: "4rem", textAlign: "center" }}>Preparing Legal Documents...</div>;
-    if (!property || !winningBid) return <div style={{ color: "#fff", padding: "4rem", textAlign: "center" }}>Agreement record not found.</div>;
+    if (!property || !winningBid) {
+        return (
+            <div style={{ position: "relative", minHeight: "80vh", color: "#fff", padding: "4rem 2rem", textAlign: "center" }}>
+                <button
+                    onClick={() => navigate(-1)}
+                    style={{
+                        position: "absolute",
+                        top: 24,
+                        left: 32,
+                        background: "rgba(0,0,0,0.5)",
+                        backdropFilter: "blur(8px)",
+                        border: "1px solid rgba(255,255,255,0.15)",
+                        color: "#fff",
+                        padding: "8px 18px",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontWeight: 600,
+                    }}
+                >
+                    ← Back
+                </button>
+                <div style={{ marginTop: "3rem", fontSize: 15, color: "rgba(255,255,255,0.85)" }}>
+                    Agreement record not found.
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="agreement-container" style={{ minHeight: "100vh", background: "#fdfdfd", color: "#111", padding: "40px 20px" }}>
@@ -249,7 +276,22 @@ export default function AuctionAgreement() {
             </style>
 
             <div className="no-print" style={{ maxWidth: 800, margin: "0 auto 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <button onClick={() => navigate("/user-dashboard")} style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: 14 }}>← Return to Dashboard</button>
+                <button
+                    onClick={() => navigate(-1)}
+                    style={{
+                        background: "rgba(0,0,0,0.75)",
+                        backdropFilter: "blur(8px)",
+                        border: "1px solid rgba(0,0,0,0.2)",
+                        color: "#fff",
+                        padding: "8px 18px",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontWeight: 600,
+                    }}
+                >
+                    ← Back
+                </button>
                 <div style={{ display: "flex", gap: 12 }}>
                     {property.agreementBuyerSigned && property.agreementSellerSigned && (
                         <button onClick={downloadPDF} style={{ background: "#eee", color: "#111", border: "none", padding: "10px 24px", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>🖨️ Download Final Agreement (PDF)</button>

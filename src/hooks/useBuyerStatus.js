@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, query, orderBy, where, getDocs, getDoc, doc } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, where, getDocs, getDoc, doc, runTransaction, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
 
 /**
@@ -66,10 +66,73 @@ export function useBuyerStatus(currentUser, userData) {
           window.sessionStorage.setItem(sessionKey, "true");
         } catch (e) { console.error("Reminder failed", e); }
       }
+
+      // Auto-finalize expired live/scheduled auctions and notify both Winner & Seller
+      const expiredLive = properties.filter(p =>
+        (p.status === "live" || p.status === "scheduled") &&
+        p.endDate &&
+        new Date(p.endDate) <= now
+      );
+
+      for (const p of expiredLive) {
+        try {
+          let finalizedData = null;
+          await runTransaction(db, async (t) => {
+            const pDoc = await t.get(doc(db, "properties", p.id));
+            if (!pDoc.exists()) return;
+            const data = pDoc.data();
+            if (data.status !== "live" && data.status !== "scheduled") return;
+            t.update(pDoc.ref, {
+              status: data.topBidderId ? "contract_pending" : "ended",
+              winnerId: data.topBidderId || null,
+              winnerName: data.topBidderName || null,
+              winnerEmail: data.topBidderEmail || null,
+              winnerAmount: data.currentBid || null,
+              endedAt: serverTimestamp(),
+            });
+            finalizedData = { id: p.id, ...data };
+          });
+
+          if (finalizedData) {
+            const { notificationService } = await import("../services/notificationService");
+            if (finalizedData.topBidderId) {
+              let winnerEmail = finalizedData.topBidderEmail || bidsMap[p.id]?.[0]?.bidderEmail;
+              if (!winnerEmail) {
+                try {
+                  const uSnap = await getDoc(doc(db, "users", finalizedData.topBidderId));
+                  if (uSnap.exists()) winnerEmail = uSnap.data().email;
+                } catch (_) {}
+              }
+              await notificationService.notifyAuctionEnd(finalizedData, {
+                bidderId: finalizedData.topBidderId,
+                bidderName: finalizedData.topBidderName || "Winning Bidder",
+                bidderEmail: winnerEmail,
+                amount: finalizedData.currentBid || 0,
+              });
+            } else if (finalizedData.sellerId) {
+              const msg = `The auction for "${finalizedData.title}" has ended with no bids placed.`;
+              await notificationService.sendBell(finalizedData.sellerId, msg, {
+                type: "auction_ended_unsold",
+                propertyId: finalizedData.id,
+              });
+              if (finalizedData.sellerEmail) {
+                await notificationService.sendEmail(
+                  finalizedData.sellerEmail,
+                  finalizedData.sellerName || "Seller",
+                  `Auction Ended: ${finalizedData.title}`,
+                  `<p>${msg}</p>`
+                );
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Auto-finalize auction failed:", e);
+        }
+      }
     };
 
     checkReminders();
-  }, [timeTick, properties, registeredIds, currentUser, notifications]);
+  }, [timeTick, properties, registeredIds, currentUser, notifications, bidsMap]);
 
   // FETCH PROPERTIES
   useEffect(() => {

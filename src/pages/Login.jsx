@@ -1,7 +1,8 @@
 // src/pages/Login.jsx
 
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { checkEmailRegistered } from "../firebase/config";
 import { useAuth } from "../context/AuthContext";
 
 const GoogleIcon = () => (
@@ -85,7 +86,7 @@ const formatAuthError = (err) => {
     case "auth/user-disabled":
       return "This user account has been disabled.";
     case "auth/user-not-found":
-      return "No account found with this email.";
+      return "No account found with this email. Please register first.";
     case "auth/wrong-password":
       return "Incorrect password.";
     case "auth/invalid-credential":
@@ -113,6 +114,15 @@ export default function Login() {
 
   const { login, googleLogin } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const oobCode = searchParams.get("oobCode");
+    const mode = searchParams.get("mode");
+    if (oobCode) {
+      navigate(`/forgot-password?mode=${mode || "resetPassword"}&oobCode=${oobCode}`, { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   // Ensure fields are empty on mount
   useState(() => {
@@ -122,12 +132,28 @@ export default function Login() {
 
   async function handleSubmit(e) {
     if (e) e.preventDefault();
-    if (!email || !password) return setError("Please fill in all fields.");
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password) return setError("Please fill in all fields.");
     setError(""); setLoading(true);
     try {
-      const { role } = await login(email, password);
+      const { role } = await login(trimmedEmail, password);
       navigate(role === "admin" ? "/admin-dashboard" : "/user-dashboard");
     } catch (err) {
+      if (err?.code === "auth/invalid-credential" || err?.code === "auth/user-not-found") {
+        try {
+          const exists = await checkEmailRegistered(trimmedEmail);
+          if (!exists) {
+            setError("No account found with this email. Please register first.");
+            setLoading(false);
+            return;
+          }
+          setError("Incorrect password. Please try again.");
+          setLoading(false);
+          return;
+        } catch (_) {
+          // Fallback to default error formatter
+        }
+      }
       setError(formatAuthError(err));
     }
     setLoading(false);

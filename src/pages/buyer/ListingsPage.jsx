@@ -12,9 +12,9 @@ import BidderManagementView from "../../components/BidderManagementView";
 const TABS = [
   { key: "active",   label: "Live & Scheduled",   icon: "🏪", color: "#4ade80" },
   { key: "approved", label: "Approved",           icon: "✔️", color: "#60a5fa" },
-  { key: "pending",  label: "Pending Review",     icon: "⏳", color: "#f59e0b" },
-  { key: "rejected", label: "Rejected",           icon: "❌", color: "#e8192c" },
-  { key: "closed",   label: "Closed & Sold",      icon: "🏁", color: "rgba(255,255,255,0.4)" },
+  { key: "pending",  label: "Pending Review",     icon: "⏳", color: "#fbbf24" },
+  { key: "rejected", label: "Rejected",           icon: "❌", color: "#f87171" },
+  { key: "closed",   label: "Closed & Sold",      icon: "🏁", color: "#e2e8f0" },
 ];
 
 export default function ListingsPage() {
@@ -111,26 +111,29 @@ export default function ListingsPage() {
                 gap: 8,
                 padding: "10px 20px",
                 borderRadius: 12,
-                border: isActive ? `1px solid ${tab.color}` : "1px solid rgba(255,255,255,0.08)",
-                background: isActive ? `${tab.color}18` : "rgba(255,255,255,0.03)",
-                color: isActive ? tab.color : "rgba(255,255,255,0.5)",
+                border: isActive ? `1.5px solid ${tab.color}` : "1px solid rgba(255,255,255,0.22)",
+                background: isActive ? "rgba(10, 12, 16, 0.88)" : "rgba(10, 12, 16, 0.72)",
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+                boxShadow: isActive ? `0 4px 16px ${tab.color}26` : "0 4px 12px rgba(0,0,0,0.35)",
+                color: isActive ? tab.color : "rgba(255,255,255,0.92)",
                 fontSize: 13,
-                fontWeight: isActive ? 700 : 500,
+                fontWeight: isActive ? 700 : 600,
                 cursor: "pointer",
                 transition: "all 0.2s",
-                letterSpacing: isActive ? "0.03em" : 0,
+                letterSpacing: isActive ? "0.03em" : "0.01em",
               }}
             >
               <span style={{ fontSize: 15 }}>{tab.icon}</span>
               {tab.label}
               <span style={{
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: 800,
-                background: isActive ? tab.color : "rgba(255,255,255,0.1)",
-                color: isActive ? "#000" : "rgba(255,255,255,0.4)",
-                padding: "2px 7px",
+                background: isActive ? tab.color : "rgba(255,255,255,0.2)",
+                color: isActive ? "#000" : "#fff",
+                padding: "2px 8px",
                 borderRadius: 20,
-                minWidth: 20,
+                minWidth: 22,
                 textAlign: "center",
               }}>
                 {count}

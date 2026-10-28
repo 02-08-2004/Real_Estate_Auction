@@ -160,9 +160,18 @@ export default function ParticipateAuctionModal({ property, onClose, onRegisterS
   }
 
   const inputStyle = {
-    width:"100%",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",
-    borderRadius:12,padding:"14px 16px",color:"#fff",fontSize:15,
-    fontFamily:"var(--font-body)",outline:"none",marginTop:8, backdropFilter: "blur(10px)"
+    width: "100%",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: 10,
+    padding: "12px 14px",
+    color: "#fff",
+    fontSize: 14,
+    fontFamily: "var(--font-body)",
+    outline: "none",
+    marginTop: 6,
+    backdropFilter: "blur(10px)",
+    transition: "border-color 0.2s ease",
   };
 
   const handleSendOtp = () => {
@@ -191,117 +200,118 @@ export default function ParticipateAuctionModal({ property, onClose, onRegisterS
       
       {/* Left Panel: Property Context (Full Details) */}
       <div style={{ 
-          width: "35%", height: "100%", background: "rgba(255,255,255,0.01)", 
-          borderRight: "1px solid rgba(255,255,255,0.1)", position: "relative",
+          width: "34%", maxWidth: 420, height: "100%", background: "rgba(255,255,255,0.015)", 
+          borderRight: "1px solid rgba(255,255,255,0.08)", position: "relative",
           display: "flex", flexDirection: "column"
       }}>
-        <div style={{ flex: 1, padding: "3rem", display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: 1, padding: "2rem 2.25rem", display: "flex", flexDirection: "column" }}>
             <button onClick={onClose} style={{ 
-                background: "none", border: "none", color: "var(--red)", 
-                cursor: "pointer", fontSize: 13, fontWeight: 700, 
-                display: "flex", alignItems: "center", gap: 8, padding: 0, marginBottom: 40 
+                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.75)", 
+                cursor: "pointer", fontSize: 12, fontWeight: 600, borderRadius: 8,
+                display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", marginBottom: 24,
+                alignSelf: "flex-start", transition: "all 0.2s ease"
             }}>
-                ← CANCEL & EXIT
+                ← Exit Registration
             </button>
 
-            <div style={{ width: "100%", aspectRatio: "4/3", borderRadius: 24, overflow: "hidden", marginBottom: 32, border: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ width: "100%", aspectRatio: "16/10", borderRadius: 14, overflow: "hidden", marginBottom: 20, border: "1px solid rgba(255,255,255,0.08)" }}>
                 <img src={property.imageUrls?.[0]} alt={property.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </div>
 
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 500, marginBottom: 8, lineHeight: 1.1 }}>{property.title}</h1>
-            <div style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 8, marginBottom: 40 }}>
+            <h1 style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 500, marginBottom: 6, lineHeight: 1.2 }}>{property.title}</h1>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", display: "flex", alignItems: "center", gap: 6, marginBottom: 24 }}>
                 📍 {property.location}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginTop: "auto" }}>
-                <div style={{ background: "rgba(255,255,255,0.03)", padding: 24, borderRadius: 20, border: "1px solid rgba(255,255,255,0.05)" }}>
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>Current Bid</div>
-                    <div style={{ fontSize: 24, fontWeight: 600 }}>₹{property.currentBid.toLocaleString()}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: "auto" }}>
+                <div style={{ background: "rgba(255,255,255,0.03)", padding: "14px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 4 }}>Current Bid</div>
+                    <div style={{ fontSize: 18, fontWeight: 600 }}>₹{property.currentBid.toLocaleString()}</div>
                 </div>
-                <div style={{ background: "rgba(255,255,255,0.03)", padding: 24, borderRadius: 20, border: "1px solid rgba(255,255,255,0.05)" }}>
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>Verification</div>
-                    <div style={{ fontSize: 24, fontWeight: 600, color: "var(--red)" }}>{step}/3</div>
+                <div style={{ background: "rgba(255,255,255,0.03)", padding: "14px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 4 }}>Verification</div>
+                    <div style={{ fontSize: 18, fontWeight: 600, color: "var(--red)" }}>Step {step} of 3</div>
                 </div>
             </div>
         </div>
       </div>
 
       {/* Right Panel: The Verification Wizard */}
-      <div style={{ flex: 1, height: "100%", overflowY: "auto", position: "relative", backgroundColor: "#080808" }}>
-          <div style={{ maxWidth: 680, margin: "0 auto", padding: "8rem 3rem" }}>
+      <div style={{ flex: 1, height: "100%", overflowY: "auto", position: "relative", backgroundColor: "#080808", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: "100%", maxWidth: 540, margin: "0 auto", padding: "2.5rem 2rem" }}>
               
               {/* Progress Header */}
-              <div style={{ marginBottom: 60 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: "var(--red)", letterSpacing: 2 }}>KYC STATUS: STEP {step}</span>
-                      <span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", fontWeight: 500 }}>{Math.round((step/3)*100)}% COMPLETE</span>
+              <div style={{ marginBottom: 28 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "var(--red)", letterSpacing: 1.5 }}>KYC VERIFICATION • STEP {step} OF 3</span>
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>{Math.round((step/3)*100)}% COMPLETE</span>
                   </div>
-                  <div style={{ width: "100%", height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3 }}>
-                      <div style={{ width: `${(step/3)*100}%`, height: "100%", background: "var(--red)", borderRadius: 3, transition: "width 0.4s cubic-bezier(0.4, 0, 0.2, 1)" }}></div>
+                  <div style={{ width: "100%", height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2 }}>
+                      <div style={{ width: `${(step/3)*100}%`, height: "100%", background: "var(--red)", borderRadius: 2, transition: "width 0.35s ease" }}></div>
                   </div>
               </div>
 
-              {error && <div ref={errorRef} className="msg-error" style={{ marginBottom: 40, padding: 20, borderRadius: 16 }}>{error}</div>}
+              {error && <div ref={errorRef} className="msg-error" style={{ marginBottom: 20, padding: "12px 16px", borderRadius: 10, fontSize: 13 }}>{error}</div>}
 
-              {/* Step Content Area */}
-              <div style={{ minHeight: 440 }}>
+              {/* Step Content Card */}
+              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: "24px 26px" }}>
                   {step === 1 && (
                       <div className="fade-in">
-                          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 40, marginBottom: 16 }}>Personal Verification</h2>
-                          <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: 40, fontSize: 17, lineHeight: 1.6, maxWidth: 500 }}>Provide your official details to register as a verified bidder for this property.</p>
+                          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 500, marginBottom: 6 }}>Personal Verification</h2>
+                          <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: 22, fontSize: 13, lineHeight: 1.5 }}>Provide your official details to register as a verified bidder for this property.</p>
                           
-                          <div style={{ marginBottom: 24 }}>
-                              <label style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing: 1.5 }}>Legal Full Name</label>
+                          <div style={{ marginBottom: 16 }}>
+                              <label style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 }}>Legal Full Name</label>
                               <input 
-                                  style={{ ...inputStyle, padding: 16, fontSize: 15 }} 
-                                  placeholder="E.g., Jane Doe" 
+                                  style={inputStyle} 
+                                  placeholder="e.g., Jane Doe" 
                                   value={fullName} 
                                   onChange={e => setFullName(e.target.value)} 
                               />
                           </div>
 
-                          <div style={{ marginBottom: 24 }}>
-                              <label style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing: 1.5 }}>Phone Number</label>
-                              <div style={{ display: "flex", gap: 12 }}>
+                          <div style={{ marginBottom: 16 }}>
+                              <label style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 }}>Phone Number</label>
+                              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                                 <input 
-                                    style={{ ...inputStyle, padding: 16, fontSize: 15, flex: 1 }} 
-                                    placeholder="Enter mobile number" 
+                                    style={{ ...inputStyle, flex: 1 }} 
+                                    placeholder="Enter 10-digit mobile number" 
                                     value={phoneNumber} 
                                     onChange={e => setPhoneNumber(e.target.value)}
                                     disabled={phoneVerified || otpSent}
                                 />
                                 {!phoneVerified && !otpSent && (
-                                  <button type="button" onClick={handleSendOtp} style={{ background: "var(--primary)", border: "none", color: "#fff", padding: "0 24px", borderRadius: 10, fontWeight: 700, cursor: "pointer", marginTop: 8 }}>SEND OTP</button>
+                                  <button type="button" onClick={handleSendOtp} style={{ background: "var(--primary)", border: "none", color: "#fff", padding: "11px 16px", borderRadius: 9, fontSize: 12, fontWeight: 600, cursor: "pointer", marginTop: 6, whiteSpace: "nowrap" }}>Send OTP</button>
                                 )}
                               </div>
                           </div>
 
                           {otpSent && !phoneVerified && (
-                            <div style={{ marginBottom: 24, padding: 20, background: "rgba(255,255,255,0.03)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)" }}>
-                                <label style={{ fontSize: 12, fontWeight: 700, color: "var(--primary)", textTransform:"uppercase", letterSpacing: 1.5 }}>Enter 4-Digit OTP</label>
-                                <div style={{ display: "flex", gap: 12 }}>
+                            <div style={{ marginBottom: 16, padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)" }}>
+                                <label style={{ fontSize: 11, fontWeight: 600, color: "var(--primary)", textTransform: "uppercase", letterSpacing: 1 }}>Enter 4-Digit OTP</label>
+                                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                                   <input 
-                                      style={{ ...inputStyle, padding: 16, fontSize: 15, flex: 1, letterSpacing: 4 }} 
-                                      placeholder="0000" 
+                                      style={{ ...inputStyle, flex: 1, letterSpacing: 4 }} 
+                                      placeholder="1234" 
                                       value={otp} 
                                       onChange={e => setOtp(e.target.value)}
                                       maxLength={4}
                                   />
-                                  <button type="button" onClick={handleVerifyOtp} style={{ background: "#4ade80", border: "none", color: "#000", padding: "0 24px", borderRadius: 10, fontWeight: 700, cursor: "pointer", marginTop: 8 }}>VERIFY</button>
+                                  <button type="button" onClick={handleVerifyOtp} style={{ background: "#4ade80", border: "none", color: "#111", padding: "11px 18px", borderRadius: 9, fontSize: 12, fontWeight: 600, cursor: "pointer", marginTop: 6 }}>Verify</button>
                                 </div>
                             </div>
                           )}
 
                           {phoneVerified && (
-                             <div style={{ marginBottom: 24, color: "#4ade80", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
-                                <span style={{ fontSize: 18 }}>✓</span> Phone Number Verified
+                             <div style={{ marginBottom: 16, color: "#4ade80", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                                <span>✓</span> Phone Number Verified
                              </div>
                           )}
 
-                          <div style={{ marginBottom: 32 }}>
-                              <label style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing: 1.5 }}>Full Residential Address</label>
+                          <div>
+                              <label style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 }}>Full Residential Address</label>
                               <textarea 
-                                  style={{ ...inputStyle, height: 100, padding: 24, fontSize: 16, lineHeight: 1.7, marginTop: 16, borderRadius: 20 }} 
+                                  style={{ ...inputStyle, height: 76, resize: "vertical", lineHeight: 1.5 }} 
                                   placeholder="House No, Street Name, City, State, ZIP..." 
                                   value={address} 
                                   onChange={e => setAddress(e.target.value)} 
@@ -313,43 +323,42 @@ export default function ParticipateAuctionModal({ property, onClose, onRegisterS
                   {step === 2 && (
                       <div className="fade-in">
                           {verificationStatus === 'failed' ? (
-                              <div ref={errorRef} style={{ textAlign: "center", padding: "2rem" }}>
-                                   <div style={{ fontSize: 64, marginBottom: 24 }}>{verificationError.includes("Conflict") ? "⚠️" : "🛑"}</div>
-                                   <h2 style={{ fontFamily: "var(--font-display)", fontSize: 28, color: "var(--red)", marginBottom: 12 }}>
+                              <div ref={errorRef} style={{ textAlign: "center", padding: "1rem 0.5rem" }}>
+                                   <div style={{ fontSize: 42, marginBottom: 12 }}>{verificationError.includes("Conflict") ? "⚠️" : "🛑"}</div>
+                                   <h2 style={{ fontFamily: "var(--font-display)", fontSize: 24, color: "var(--red)", marginBottom: 8 }}>
                                        {verificationError.includes("Conflict") ? "Identity Conflict" : "Verification Failed"}
                                    </h2>
-                                   <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 15, lineHeight: 1.6, marginBottom: 32 }}>
+                                   <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, lineHeight: 1.5, marginBottom: 20 }}>
                                       {verificationError}
                                    </p>
                                    
-                                   {/* Show comparison only for mismatch, not for conflict (where numbers are same) */}
                                    {!verificationError.includes("Conflict") && (
-                                      <div style={{ background: "rgba(255,255,255,0.03)", padding: 24, borderRadius: 20, textAlign: "left", marginBottom: 32 }}>
-                                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-                                              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>YOUR INPUT</span>
-                                              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--red)" }}>{aadharNumber}</span>
+                                      <div style={{ background: "rgba(255,255,255,0.03)", padding: 14, borderRadius: 12, textAlign: "left", marginBottom: 20 }}>
+                                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                                              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>YOUR INPUT</span>
+                                              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--red)" }}>{aadharNumber}</span>
                                           </div>
                                           <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>DETECTED ON CARD</span>
-                                              <span style={{ fontSize: 13, fontWeight: 700 }}>{detectedNumbers.length > 0 ? detectedNumbers[0] : "None Detected"}</span>
+                                              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>DETECTED ON CARD</span>
+                                              <span style={{ fontSize: 12, fontWeight: 700 }}>{detectedNumbers.length > 0 ? detectedNumbers[0] : "None Detected"}</span>
                                           </div>
                                       </div>
                                    )}
                                    
-                                   <button onClick={() => { setVerificationStatus(null); setStep(2); setIdFile(null); }} style={{ padding: "14px 32px", borderRadius: 12, background: "var(--red)", border: "none", color: "#fff", fontWeight: 700, cursor: "pointer" }}>
-                                      {verificationError.includes("Conflict") ? "CHANGE ACCOUNT OR ID" : "RE-SCAN DOCUMENT"}
+                                   <button onClick={() => { setVerificationStatus(null); setStep(2); setIdFile(null); }} style={{ padding: "10px 20px", borderRadius: 9, background: "var(--red)", border: "none", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                                      {verificationError.includes("Conflict") ? "Change Account or ID" : "Re-scan Document"}
                                    </button>
                               </div>
                           ) : (
                               <>
-                                  <h2 style={{ fontFamily: "var(--font-display)", fontSize: 40, marginBottom: 16 }}>Identity Proof</h2>
-                                  <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: 56, fontSize: 17, lineHeight: 1.6, maxWidth: 500 }}>Our AI scanner will verify the Aadhar details in real-time as a security cross-check.</p>
+                                  <h2 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 500, marginBottom: 6 }}>Identity Proof</h2>
+                                  <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: 22, fontSize: 13, lineHeight: 1.5 }}>Our AI scanner verifies your Aadhar details in real-time as a security cross-check.</p>
                                   
-                                  <div style={{ marginBottom: 40 }}>
-                                      <label style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing: 1.5 }}>12-Digit Aadhar Identification</label>
+                                  <div style={{ marginBottom: 20 }}>
+                                      <label style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 }}>12-Digit Aadhar Identification</label>
                                       <input 
                                           type="text" 
-                                          style={{ ...inputStyle, marginTop: 16, padding: 24, fontSize: 28, textAlign: "center", letterSpacing: 12, fontWeight: 600, borderRadius: 20 }} 
+                                          style={{ ...inputStyle, padding: "13px 16px", fontSize: 18, textAlign: "center", letterSpacing: 6, fontWeight: 600 }} 
                                           placeholder="0000 0000 0000" 
                                           value={aadharNumber} 
                                           onChange={e => setAadharNumber(e.target.value)} 
@@ -358,13 +367,13 @@ export default function ParticipateAuctionModal({ property, onClose, onRegisterS
                                   </div>
 
                                   <label style={{ 
-                                      display: "block", background: "rgba(255,255,255,0.01)", border: "2px dashed rgba(255,255,255,0.1)", 
-                                      borderRadius: 24, padding: "80px 40px", textAlign: "center", cursor: "pointer", 
-                                      transition: "all 0.3s", borderColor: idFile ? "#4ade80" : "rgba(255,255,255,0.1)" 
+                                      display: "block", background: "rgba(255,255,255,0.02)", border: "1.5px dashed rgba(255,255,255,0.15)", 
+                                      borderRadius: 14, padding: "28px 20px", textAlign: "center", cursor: "pointer", 
+                                      transition: "all 0.2s", borderColor: idFile ? "#4ade80" : "rgba(255,255,255,0.15)" 
                                   }}>
-                                      <div style={{ fontSize: 56, marginBottom: 24 }}>{idFile ? "📄" : "📤"}</div>
-                                      <div style={{ fontSize: 18, fontWeight: 600, color: idFile ? "#4ade80" : "#fff" }}>{idFile ? idFile.name : "Select ID Document Image"}</div>
-                                      <div style={{ fontSize: 14, color: "rgba(255,255,255,0.3)", marginTop: 16 }}>JPG, JPEG, or PNG formats only</div>
+                                      <div style={{ fontSize: 32, marginBottom: 8 }}>{idFile ? "📄" : "📤"}</div>
+                                      <div style={{ fontSize: 14, fontWeight: 600, color: idFile ? "#4ade80" : "#fff" }}>{idFile ? idFile.name : "Upload ID Document Image"}</div>
+                                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 4 }}>JPG, JPEG, or PNG formats only</div>
                                       <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
                                           const f = e.target.files[0];
                                           if (f && f.type.startsWith("image/")) {
@@ -374,8 +383,8 @@ export default function ParticipateAuctionModal({ property, onClose, onRegisterS
                                   </label>
 
                                   {verificationStatus === 'scanning' && (
-                                      <div style={{ marginTop: 40, textAlign: "center", animation: "pulse 2s infinite" }}>
-                                          <div style={{ fontSize: 13, color: "var(--red)", fontWeight: 700, letterSpacing: 2 }}>{uploadText.toUpperCase()}</div>
+                                      <div style={{ marginTop: 18, textAlign: "center", animation: "pulse 2s infinite" }}>
+                                          <div style={{ fontSize: 12, color: "var(--red)", fontWeight: 600, letterSpacing: 1.5 }}>{uploadText.toUpperCase()}</div>
                                       </div>
                                   )}
                               </>
@@ -385,49 +394,66 @@ export default function ParticipateAuctionModal({ property, onClose, onRegisterS
 
                   {step === 3 && (
                       <div className="fade-in">
-                          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 40, marginBottom: 16 }}>Agreement</h2>
-                          <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: 56, fontSize: 17, lineHeight: 1.6, maxWidth: 500 }}>Review the final terms and authorize your participation in the live property auction.</p>
+                          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 500, marginBottom: 6 }}>Agreement</h2>
+                          <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: 22, fontSize: 13, lineHeight: 1.5 }}>Review the final terms and authorize your participation in the live property auction.</p>
                           
-                          <div style={{ background: "rgba(232,25,44,0.03)", padding: 40, borderRadius: 28, border: "1px solid rgba(232,25,44,0.1)" }}>
-                              <div style={{ display: "flex", alignItems: "flex-start", gap: 24 }}>
-                                  <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ width: 28, height: 28, marginTop: 4, cursor: "pointer", accentColor: "var(--red)" }} />
-                                  <div style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", lineHeight: 1.8 }}>
-                                      I certify that the information provided is accurate and authentic. I understand that winning this auction creates a **non-revocable, legally binding contract** at the final bid price.
-                                  </div>
+                          <label style={{ display: "flex", alignItems: "flex-start", gap: 14, background: agreed ? "rgba(232,25,44,0.06)" : "rgba(255,255,255,0.02)", padding: "18px 20px", borderRadius: 12, border: `1px solid ${agreed ? "rgba(232,25,44,0.35)" : "rgba(255,255,255,0.08)"}`, cursor: "pointer", transition: "all 0.2s" }}>
+                              <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 2, cursor: "pointer", accentColor: "var(--red)" }} />
+                              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.6 }}>
+                                  I certify that the information provided is accurate and authentic. I understand that winning this auction creates a <strong>non-revocable, legally binding contract</strong> at the final bid price.
                               </div>
-                          </div>
+                          </label>
 
                           {uploadText && (
-                              <div style={{ marginTop: 48, textAlign: "center", padding: "1.5rem", background: "rgba(232,25,44,0.1)", borderRadius: 20, border: "1px solid rgba(232,25,44,0.2)" }}>
-                                  <div style={{ fontSize: 14, color: "#fff", fontWeight: 700, letterSpacing: 2 }}>{uploadText.toUpperCase()}</div>
+                              <div style={{ marginTop: 18, textAlign: "center", padding: "12px", background: "rgba(232,25,44,0.1)", borderRadius: 10, border: "1px solid rgba(232,25,44,0.2)" }}>
+                                  <div style={{ fontSize: 12, color: "#fff", fontWeight: 600, letterSpacing: 1 }}>{uploadText.toUpperCase()}</div>
                               </div>
                           )}
                       </div>
                   )}
-              </div>
 
-              {/* Navigation Actions */}
-              <div style={{ display: "flex", gap: 24, marginTop: 96 }}>
+                  {/* Compact Navigation Actions Inside Card Footer */}
                   {verificationStatus !== 'failed' && (
-                    <button 
-                        type="button" 
-                        onClick={step > 1 ? () => setStep(s => s - 1) : onClose} 
-                        style={{ flex: 1, padding: "24px", borderRadius: 20, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.6)", cursor: "pointer", fontSize: 14, fontWeight: 700, letterSpacing: 1 }}
-                    >
-                        {step > 1 ? "PREVIOUS STEP" : "CANCEL REGISTRATION"}
-                    </button>
-                  )}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 24, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                      <button 
+                          type="button" 
+                          onClick={step > 1 ? () => setStep(s => s - 1) : onClose} 
+                          style={{
+                            padding: "10px 18px",
+                            borderRadius: 9,
+                            border: "1px solid rgba(255,255,255,0.12)",
+                            background: "rgba(255,255,255,0.04)",
+                            color: "rgba(255,255,255,0.75)",
+                            cursor: "pointer",
+                            fontSize: 13,
+                            fontWeight: 500,
+                            fontFamily: "var(--font-body)",
+                            transition: "all 0.2s ease",
+                            whiteSpace: "nowrap"
+                          }}
+                      >
+                          {step > 1 ? "← Previous" : "Cancel"}
+                      </button>
 
-                  {verificationStatus !== 'failed' && (
-                    <button 
-                        type="button" 
-                        className="btn-primary" 
-                        style={{ flex: 2, padding: "24px", borderRadius: 20, fontSize: 15, letterSpacing: 1 }} 
-                        onClick={step < 3 ? handleNext : handleSubmit} 
-                        disabled={loading || (step === 3 && !agreed)}
-                    >
-                        {step < 3 ? (loading ? "ANALYZING..." : `CONTINUE TO STEP ${step + 1} →`) : (loading ? "PROCESSING BIDDER PROFILE..." : "CONFIRM & REGISTER ✓")}
-                    </button>
+                      <button 
+                          type="button" 
+                          className="btn-primary" 
+                          style={{
+                            padding: "10px 22px",
+                            borderRadius: 9,
+                            fontSize: 13,
+                            fontWeight: 600,
+                            letterSpacing: 0.3,
+                            whiteSpace: "nowrap",
+                            width: "auto",
+                            minWidth: 160
+                          }} 
+                          onClick={step < 3 ? handleNext : handleSubmit} 
+                          disabled={loading || (step === 3 && !agreed)}
+                      >
+                          {step < 3 ? (loading ? "Analyzing..." : `Continue to Step ${step + 1} →`) : (loading ? "Registering..." : "Confirm & Register ✓")}
+                      </button>
+                    </div>
                   )}
               </div>
           </div>

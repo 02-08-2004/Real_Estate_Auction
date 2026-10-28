@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase/config";
 import { useAuth } from "../context/AuthContext";
 import { useBuyerStatus } from "../hooks/useBuyerStatus";
 import { BellIcon } from "@heroicons/react/24/outline";
@@ -7,9 +9,47 @@ export default function NotificationBell() {
   const { currentUser, userData } = useAuth();
   const { notifications = [] } = useBuyerStatus(currentUser, userData);
   const [isOpen, setIsOpen] = useState(false);
+  const [seenIds, setSeenIds] = useState([]);
   const dropdownRef = useRef(null);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const storageKey = currentUser?.uid ? `seen_notifs_${currentUser.uid}` : null;
+
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      if (Array.isArray(saved)) setSeenIds(saved);
+    } catch (_) {}
+  }, [storageKey]);
+
+  const isUnread = (n) => !n.read && !seenIds.includes(n.id);
+  const unreadNotifications = notifications.filter(isUnread);
+  const unreadCount = unreadNotifications.length;
+
+  const markAllAsSeen = async () => {
+    if (notifications.length === 0) return;
+    const allIds = Array.from(new Set([...seenIds, ...notifications.map(n => n.id)]));
+    setSeenIds(allIds);
+    if (storageKey) {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(allIds));
+      } catch (_) {}
+    }
+
+    // Persist read status in Firestore
+    const toUpdate = notifications.filter(n => !n.read);
+    await Promise.allSettled(
+      toUpdate.map(n => updateDoc(doc(db, "notifications", n.id), { read: true }))
+    );
+  };
+
+  const handleToggle = () => {
+    const nextOpen = !isOpen;
+    setIsOpen(nextOpen);
+    if (nextOpen && unreadCount > 0) {
+      markAllAsSeen();
+    }
+  };
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -24,7 +64,7 @@ export default function NotificationBell() {
   return (
     <div style={{ position: "relative" }} ref={dropdownRef}>
       <button 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         style={{
           background: "rgba(255,255,255,0.03)",
           border: "1px solid rgba(255,255,255,0.08)",
@@ -84,26 +124,29 @@ export default function NotificationBell() {
                 No notifications yet.
               </div>
             ) : (
-              notifications.slice(0, 5).map((n, i) => (
-                <div key={n.id} style={{ 
-                  padding: "16px 20px", 
-                  borderBottom: i === notifications.length - 1 ? "none" : "1px solid rgba(255,255,255,0.03)",
-                  background: n.read ? "transparent" : "rgba(255,255,255,0.02)",
-                  cursor: "pointer",
-                  transition: "background 0.2s"
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
-                onMouseLeave={e => e.currentTarget.style.background = n.read ? "transparent" : "rgba(255,255,255,0.02)"}
-                >
-                  <div style={{ display: "flex", gap: "12px" }}>
-                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: n.read ? "transparent" : "var(--primary)", marginTop: "6px", flexShrink: 0 }} />
-                    <div>
-                      <div style={{ fontSize: "13px", color: "#fff", lineHeight: 1.4, marginBottom: "4px" }}>{n.message}</div>
-                      <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)" }}>{n.createdAt?.toDate?.()?.toLocaleTimeString()}</div>
+              notifications.slice(0, 5).map((n, i) => {
+                const itemRead = !isUnread(n);
+                return (
+                  <div key={n.id} style={{ 
+                    padding: "16px 20px", 
+                    borderBottom: i === notifications.length - 1 ? "none" : "1px solid rgba(255,255,255,0.03)",
+                    background: itemRead ? "transparent" : "rgba(255,255,255,0.02)",
+                    cursor: "pointer",
+                    transition: "background 0.2s"
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+                  onMouseLeave={e => e.currentTarget.style.background = itemRead ? "transparent" : "rgba(255,255,255,0.02)"}
+                  >
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: itemRead ? "transparent" : "var(--primary)", marginTop: "6px", flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: "13px", color: "#fff", lineHeight: 1.4, marginBottom: "4px" }}>{n.message}</div>
+                        <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)" }}>{n.createdAt?.toDate?.()?.toLocaleTimeString()}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
           
